@@ -1,6 +1,6 @@
 # SaveKaro
 
-A web application that aggregates high-discounted product deals from Reddit.
+A web application that displays high-discounted product deals on platforms like Amazon, Flipkart, Myntra etc.
 
 ## Features
 
@@ -17,6 +17,7 @@ A web application that aggregates high-discounted product deals from Reddit.
 ## Tech Stack
 
 ### Backend
+
 - **Runtime**: Bun.js
 - **Framework**: Hono
 - **Database**: PostgreSQL + Prisma ORM
@@ -25,6 +26,7 @@ A web application that aggregates high-discounted product deals from Reddit.
 - **Logging**: Pino
 
 ### Frontend
+
 - **Framework**: React + TypeScript
 - **Build**: Vite
 - **Styling**: TailwindCSS v4 + shadcn/ui
@@ -77,6 +79,7 @@ DealHunt/
 ### Environment Setup
 
 1. Copy the example environment files:
+
    ```bash
    cp backend/.env.example backend/.env
    cp frontend/.env.example frontend/.env
@@ -87,11 +90,13 @@ DealHunt/
 ### Development
 
 1. Start the database:
+
    ```bash
    docker compose up postgres -d
    ```
 
 2. Setup the backend:
+
    ```bash
    cd backend
    bun install
@@ -101,6 +106,7 @@ DealHunt/
    ```
 
 3. Start the frontend:
+
    ```bash
    cd frontend
    bun install
@@ -112,11 +118,13 @@ DealHunt/
 ## API Endpoints
 
 ### Authentication
+
 - `GET /api/auth/google` - Initiate Google OAuth
 - `GET /api/auth/google/callback` - OAuth callback
 - `GET /api/auth/me` - Get current user
 
 ### Deals
+
 - `GET /api/deals` - List deals (with filtering/pagination)
 - `GET /api/deals/:id` - Get deal details
 - `POST /api/deals` - Submit new deal (authenticated)
@@ -124,19 +132,23 @@ DealHunt/
 - `POST /api/deals/:id/save` - Save/unsave deal
 
 ### Categories
+
 - `GET /api/categories` - List all categories
 - `GET /api/categories/:slug` - Get category details
 
 ### Users
+
 - `GET /api/users/me/saved` - Get saved deals
 - `GET /api/users/me/submitted` - Get submitted deals
 - `PUT /api/users/me/preferences` - Update preferences
 
 ### Comments
+
 - `GET /api/comments/deal/:dealId` - Get deal comments
 - `POST /api/comments/deal/:dealId` - Add comment
 
 ### Notifications
+
 - `GET /api/notifications` - Get notifications
 - `PUT /api/notifications/:id/read` - Mark as read
 

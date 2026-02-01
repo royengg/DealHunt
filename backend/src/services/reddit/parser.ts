@@ -2,9 +2,34 @@ import * as cheerio from "cheerio";
 import { RedditPost } from "./client";
 import logger from "../../lib/logger";
 
-// Store patterns for common Indian e-commerce sites
+// Store patterns for e-commerce sites (India + International)
 const STORE_PATTERNS: Record<string, RegExp[]> = {
-  Amazon: [/amazon\.in/i, /amzn\.to/i, /amazon\.com/i],
+  // International stores
+  Amazon: [
+    /amazon\.in/i,
+    /amazon\.com/i,
+    /amazon\.co\.uk/i,
+    /amazon\.de/i,
+    /amazon\.ca/i,
+    /amazon\.com\.au/i,
+    /amzn\.to/i,
+    /amzn\.com/i,
+  ],
+  Steam: [/store\.steampowered\.com/i, /steampowered\.com/i],
+  "Epic Games": [/epicgames\.com/i, /store\.epicgames\.com/i],
+  GOG: [/gog\.com/i],
+  "Humble Bundle": [/humblebundle\.com/i],
+  PlayStation: [/store\.playstation\.com/i, /playstation\.com/i],
+  Xbox: [/xbox\.com/i, /microsoft\.com\/store/i],
+  Nintendo: [/nintendo\.com/i],
+  "Best Buy": [/bestbuy\.com/i, /bestbuy\.ca/i],
+  Walmart: [/walmart\.com/i, /walmart\.ca/i],
+  Target: [/target\.com/i],
+  Newegg: [/newegg\.com/i],
+  "B&H Photo": [/bhphotovideo\.com/i],
+  eBay: [/ebay\.com/i, /ebay\.co\.uk/i],
+  AliExpress: [/aliexpress\.com/i],
+  // Indian stores
   Flipkart: [/flipkart\.com/i, /fkrt\.it/i],
   Myntra: [/myntra\.com/i],
   Ajio: [/ajio\.com/i],
@@ -55,13 +80,19 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     "adapter",
   ],
   fashion: [
+    "clothing",
+    "apparel",
+    "fashion",
     "shirt",
     "tshirt",
     "t-shirt",
     "jeans",
     "trouser",
+    "trousers",
     "pant",
+    "pants",
     "dress",
+    "dresses",
     "kurta",
     "saree",
     "lehenga",
@@ -69,15 +100,22 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
     "hoodie",
     "sweater",
     "shoe",
+    "shoes",
     "sneaker",
+    "sneakers",
     "sandal",
     "slipper",
     "bag",
     "handbag",
     "wallet",
     "belt",
-    "watch",
     "sunglass",
+    "sunglasses",
+    "women",
+    "men",
+    "kids",
+    "flat off",
+    "% off on",
   ],
   gaming: [
     "game",
@@ -404,26 +442,62 @@ function isProductUrl(url: string): boolean {
   return true;
 }
 
-// Extract product URL from post
-function extractProductUrl(post: RedditPost): string {
-  // First, try to find a store URL in the selftext (most reliable)
-  const urlMatches = post.selftext.match(/https?:\/\/[^\s\)\]]+/g) || [];
-  for (const url of urlMatches) {
-    if (isProductUrl(url)) {
-      return url;
+// Extract product URL from post and optionally from comments
+function extractProductUrl(post: RedditPost, comments: string[] = []): string {
+  // Collect all potential URLs from post content
+  const allUrls: string[] = [];
+
+  // 1. Extract markdown links [text](url) from selftext
+  const markdownLinks =
+    post.selftext.match(/\[.*?\]\((https?:\/\/[^\s\)]+)\)/g) || [];
+  for (const link of markdownLinks) {
+    const urlMatch = link.match(/\((https?:\/\/[^\s\)]+)\)/);
+    if (urlMatch) allUrls.push(urlMatch[1]);
+  }
+
+  // 2. Extract plain URLs from selftext
+  const plainUrls =
+    post.selftext.match(/(?<!\()https?:\/\/[^\s\)\]<>]+/g) || [];
+  allUrls.push(...plainUrls);
+
+  // 3. Add post URL if it's a link post
+  if (!post.is_self && post.url) {
+    allUrls.push(post.url);
+  }
+
+  // 4. Check title for URLs
+  const titleUrls = post.title.match(/https?:\/\/[^\s\)\]]+/g) || [];
+  allUrls.push(...titleUrls);
+
+  // 5. Extract URLs from comments (often "link in comments")
+  for (const comment of comments) {
+    // Markdown links in comments
+    const commentMdLinks =
+      comment.match(/\[.*?\]\((https?:\/\/[^\s\)]+)\)/g) || [];
+    for (const link of commentMdLinks) {
+      const urlMatch = link.match(/\((https?:\/\/[^\s\)]+)\)/);
+      if (urlMatch) allUrls.push(urlMatch[1]);
+    }
+    // Plain URLs in comments
+    const commentUrls = comment.match(/(?<!\()https?:\/\/[^\s\)\]<>]+/g) || [];
+    allUrls.push(...commentUrls);
+  }
+
+  // First pass: prioritize known store URLs
+  for (const url of allUrls) {
+    if (!isProductUrl(url)) continue;
+    // Check if it matches any known store
+    for (const patterns of Object.values(STORE_PATTERNS)) {
+      if (patterns.some((pattern) => pattern.test(url))) {
+        return url.replace(/[\)\]]+$/, ""); // Clean trailing brackets
+      }
     }
   }
 
-  // If it's a link post and URL is not a Reddit/image URL, use it
-  if (!post.is_self && post.url && isProductUrl(post.url)) {
-    return post.url;
-  }
-
-  // Also check the title for URLs (some posts have URLs in title)
-  const titleUrls = post.title.match(/https?:\/\/[^\s\)\]]+/g) || [];
-  for (const url of titleUrls) {
+  // Second pass: any valid product URL
+  for (const url of allUrls) {
     if (isProductUrl(url)) {
-      return url;
+      return url.replace(/[\)\]]+$/, ""); // Clean trailing brackets
     }
   }
 
@@ -441,19 +515,33 @@ function detectStore(url: string): string | null {
   return null;
 }
 
-// Detect category from title and description
+// Detect category from title and description using keyword scoring
 function detectCategory(text: string): string {
   const lowerText = text.toLowerCase();
+  const scores: Record<string, number> = {};
 
+  // Count keyword matches per category
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    scores[category] = 0;
     for (const keyword of keywords) {
       if (lowerText.includes(keyword)) {
-        return category;
+        // Longer keywords get more weight (more specific)
+        scores[category] += keyword.length > 5 ? 2 : 1;
       }
     }
   }
 
-  return "other";
+  // Find category with highest score
+  let bestCategory = "other";
+  let bestScore = 0;
+  for (const [category, score] of Object.entries(scores)) {
+    if (score > bestScore) {
+      bestScore = score;
+      bestCategory = category;
+    }
+  }
+
+  return bestScore > 0 ? bestCategory : "other";
 }
 
 // Clean title (remove "link in comments", emojis, excessive whitespace)
@@ -571,6 +659,7 @@ async function extractImageUrl(
 // Parse a Reddit post into a deal
 export async function parseRedditPost(
   post: RedditPost,
+  comments: string[] = [],
 ): Promise<ParsedDeal | null> {
   const fullText = `${post.title} ${post.selftext}`;
 
@@ -589,7 +678,7 @@ export async function parseRedditPost(
     return null;
   }
 
-  const productUrl = extractProductUrl(post);
+  const productUrl = extractProductUrl(post, comments);
   const { dealPrice, originalPrice, currency } = extractPrices(fullText);
   const discountPercent = extractDiscount(fullText, dealPrice, originalPrice);
   const store = detectStore(productUrl);
@@ -626,19 +715,22 @@ export async function parseRedditPost(
 // Parse multiple posts
 export async function parseRedditPosts(
   posts: RedditPost[],
+  fetchComments?: (postId: string) => Promise<string[]>,
 ): Promise<ParsedDeal[]> {
   const deals: ParsedDeal[] = [];
 
-  // Parse in parallel but with some concurrency limit if needed (for now Promise.all is fine for 50 posts)
-  // Since we might be fetching images, let's do batches or just all
-
+  // Parse with optional comment fetching for URL extraction
   const results = await Promise.all(
-    posts.map((post) =>
-      parseRedditPost(post).catch((err) => {
+    posts.map(async (post) => {
+      try {
+        // Fetch comments if fetcher provided (for "link in comments" pattern)
+        const comments = fetchComments ? await fetchComments(post.id) : [];
+        return await parseRedditPost(post, comments);
+      } catch (err) {
         logger.error({ error: err, postId: post.id }, "Failed to parse post");
         return null;
-      }),
-    ),
+      }
+    }),
   );
 
   for (const deal of results) {

@@ -7,9 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================================
 // User & Authentication
-// ============================================================
 
 model User {
   id        String  @id @default(cuid())
@@ -33,9 +31,7 @@ model User {
   @@index([email])
 }
 
-// ============================================================
 // Deals
-// ============================================================
 
 model Deal {
   id              String     @id @default(cuid())
@@ -89,9 +85,7 @@ enum DealRegion {
   WORLD
 }
 
-// ============================================================
 // Categories
-// ============================================================
 
 model Category {
   id    String  @id @default(cuid())
@@ -105,9 +99,7 @@ model Category {
   createdAt DateTime @default(now())
 }
 
-// ============================================================
 // User Engagement
-// ============================================================
 
 model SavedDeal {
   id     String @id @default(cuid())
@@ -156,9 +148,7 @@ model Comment {
   @@index([userId])
 }
 
-// ============================================================
 // Price Tracking
-// ============================================================
 
 model PriceHistory {
   id     String  @id @default(cuid())
@@ -171,10 +161,6 @@ model PriceHistory {
 
   @@index([dealId, createdAt])
 }
-
-// ============================================================
-// User Preferences
-// ============================================================
 
 model UserPreference {
   id     String @id @default(cuid())
@@ -195,11 +181,7 @@ model UserPreference {
   updatedAt DateTime @updatedAt
 }
 
-// ============================================================
-// Notifications
-// ============================================================
-
-model Notification {
+  model Notification {
   id      String           @id @default(cuid())
   user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String
@@ -223,9 +205,8 @@ enum NotificationType {
   SYSTEM
 }
 
-// ============================================================
 // Session Management (for OAuth)
-// ============================================================
+  
 
 model Session {
   id        String   @id @default(cuid())

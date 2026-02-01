@@ -227,9 +227,60 @@ export async function validateSubreddit(subreddit: string): Promise<boolean> {
   }
 }
 
+// Fetch comments for a post to extract URLs
+export async function fetchPostComments(
+  subreddit: string,
+  postId: string,
+  limit: number = 10,
+): Promise<string[]> {
+  try {
+    const accessToken = await getAccessToken();
+
+    const url = `https://oauth.reddit.com/r/${subreddit}/comments/${postId}?limit=${limit}&depth=1&raw_json=1`;
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "User-Agent": REDDIT_USER_AGENT,
+      },
+    });
+
+    if (!response.ok) {
+      logger.warn(
+        { postId, status: response.status },
+        "Failed to fetch comments",
+      );
+      return [];
+    }
+
+    // Reddit returns [post, comments] array
+    const data = (await response.json()) as [
+      unknown,
+      {
+        data: {
+          children: Array<{
+            kind: string;
+            data: { body?: string; author?: string };
+          }>;
+        };
+      },
+    ];
+
+    // Extract comment bodies (only t1 = comments, skip t1's that are "more" links)
+    const comments = data[1]?.data?.children || [];
+    return comments
+      .filter((c) => c.kind === "t1" && c.data.body)
+      .map((c) => c.data.body as string);
+  } catch (error) {
+    logger.error({ error, postId }, "Error fetching post comments");
+    return [];
+  }
+}
+
 export default {
   fetchSubredditPosts,
   searchSubreddit,
   getAccessToken,
   validateSubreddit,
+  fetchPostComments,
 };

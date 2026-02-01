@@ -1,7 +1,11 @@
 import cron from "node-cron";
 import prisma from "../../lib/prisma";
 import logger from "../../lib/logger";
-import { fetchSubredditPosts, validateSubreddit } from "./client";
+import {
+  fetchSubredditPosts,
+  validateSubreddit,
+  fetchPostComments,
+} from "./client";
 import { parseRedditPosts, ParsedDeal } from "./parser";
 import { DealRegion } from "@prisma/client";
 
@@ -164,8 +168,10 @@ async function scrapeSubreddit(
 
     logger.info({ subreddit, postCount: uniquePosts.length }, "Fetched posts");
 
-    // Parse posts into deals
-    const deals = await parseRedditPosts(uniquePosts);
+    // Parse posts into deals (with comment fetching for URLs)
+    const commentFetcher = (postId: string) =>
+      fetchPostComments(subreddit, postId, 5);
+    const deals = await parseRedditPosts(uniquePosts, commentFetcher);
     logger.info({ subreddit, dealCount: deals.length }, "Parsed deals");
 
     // Save to database

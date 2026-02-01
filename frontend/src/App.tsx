@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuthStore } from "@/store/authStore";
 import Home from "@/pages/Home";
+import Categories from "@/pages/Categories";
 import { AuthCallback, AuthError } from "@/pages/AuthCallback";
 
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ function App() {
         <AuthInitializer>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/categories" element={<Categories />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/error" element={<AuthError />} />
             {/* Add more routes as needed */}

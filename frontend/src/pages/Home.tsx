@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
+import { useSearchParams, Link } from "react-router-dom";
 import { Search, User, LogIn, X } from "lucide-react";
 import { IconRail } from "@/components/layout/IconRail";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -21,11 +22,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     category,
     store,
@@ -42,6 +43,17 @@ export function Home() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const [filterOpen, setFilterOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(search);
+
+  // Read category from URL params on mount
+  useEffect(() => {
+    const urlCategory = searchParams.get("category");
+    if (urlCategory && urlCategory !== category) {
+      setCategory(urlCategory);
+      // Clear the URL param after setting
+      searchParams.delete("category");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams, setCategory, category]);
 
   const {
     data,
@@ -219,13 +231,20 @@ export function Home() {
                 <Badge
                   key={filter.label}
                   variant="secondary"
-                  className="shrink-0 gap-1.5 py-1.5 px-3 rounded-full"
+                  className="shrink-0 gap-1.5 py-1.5 px-3 rounded-full pr-2"
                 >
                   {filter.label}
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-foreground"
-                    onClick={filter.onRemove}
-                  />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      filter.onRemove();
+                    }}
+                    className="ml-1 p-0.5 rounded-full hover:bg-muted-foreground/20 transition-colors"
+                    aria-label={`Remove ${filter.label} filter`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </Badge>
               ))}
             </div>
