@@ -7,7 +7,6 @@ import {
   Settings,
   Plus,
   Search,
-  SlidersHorizontal,
   PiggyBank,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,11 +46,7 @@ const bottomNavItems: NavItem[] = [
   { path: "/settings", icon: Settings, label: "Settings" },
 ];
 
-interface IconRailProps {
-  onFilterClick: () => void;
-}
-
-export function IconRail({ onFilterClick }: IconRailProps) {
+export function IconRail() {
   const location = useLocation();
   const { isAuthenticated } = useAuthStore();
 
@@ -103,25 +98,6 @@ export function IconRail({ onFilterClick }: IconRailProps) {
       {/* Main Nav */}
       <nav className="flex flex-col items-center gap-2">
         {navItems.map(renderNavItem)}
-
-        {/* Filter Button */}
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-12 w-12 rounded-lg text-muted-foreground hover:text-black dark:hover:text-white hover:bg-transparent"
-                onClick={onFilterClick}
-              >
-                <SlidersHorizontal className="h-[26px] w-[26px] stroke-[2.5]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={10}>
-              Filters
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
 
         {isAuthenticated && authNavItems.map(renderNavItem)}
       </nav>

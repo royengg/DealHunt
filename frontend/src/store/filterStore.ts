@@ -40,6 +40,12 @@ export interface Deal {
   };
   userUpvote?: number | null;
   userSaved?: boolean;
+  priceHistory?: Array<{
+    id: string;
+    price: string;
+    createdAt: string;
+    source?: string;
+  }>;
 }
 
 interface FilterState {

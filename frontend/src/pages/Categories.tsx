@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Category } from "@/store/filterStore";
+import { IconRail } from "@/components/layout/IconRail";
+import { BottomNav } from "@/components/layout/BottomNav";
+import Header from "@/components/layout/Header";
+import { useCategories } from "@/hooks/useDeals";
 
 // Category data with icons and gradients
 const CATEGORY_STYLES: Record<string, { gradient: string; emoji: string }> = {
@@ -22,94 +24,94 @@ const CATEGORY_STYLES: Record<string, { gradient: string; emoji: string }> = {
 };
 
 export function Categories() {
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const res = await api.getCategories();
-      return res as { data: Category[] };
-    },
-  });
-
-  const categories = data?.data || [];
+  const { data: categories = [], isLoading, isError, error } = useCategories();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="bg-primary text-primary-foreground rounded-full p-2">
-                <span className="text-lg">🔥</span>
-              </div>
-              <span className="font-bold text-xl">DealHunt</span>
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Desktop Icon Rail */}
+      <IconRail />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-2">Browse Categories</h1>
-        <p className="text-muted-foreground mb-8">
-          Find the best deals across all categories
-        </p>
+      {/* Main Content - offset for icon rail */}
+      <div className="md:ml-24">
+        {/* Header */}
+        <Header />
 
-        {/* Error State */}
-        {isError && (
-          <div className="text-red-500 mb-4">
-            Error loading categories: {(error as Error)?.message}
-          </div>
-        )}
+        {/* Main Content */}
+        <main className="px-4 md:px-8 py-6 pb-24 md:pb-8">
+          {/* Back button */}
+          <Link
+            to="/"
+            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Deals
+          </Link>
 
-        {/* Category Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {isLoading ? (
-            // Skeletons
-            Array.from({ length: 10 }).map((_, i) => (
-              <Skeleton key={i} className="aspect-square rounded-2xl" />
-            ))
-          ) : categories.length === 0 ? (
-            <p className="col-span-full text-center text-muted-foreground">
-              No categories found
-            </p>
-          ) : (
-            categories.map((cat) => {
-              const style = CATEGORY_STYLES[cat.slug] || CATEGORY_STYLES.other;
-              return (
-                <Link
-                  key={cat.id}
-                  to={`/?category=${cat.slug}`}
-                  className="group relative aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                >
-                  {/* Gradient Background */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-90`}
-                  />
+          <h1 className="text-3xl font-bold mb-2">Browse Categories</h1>
+          <p className="text-muted-foreground mb-8">
+            Find the best deals across all categories
+          </p>
 
-                  {/* Content */}
-                  <div className="relative h-full flex flex-col items-center justify-center text-white p-4">
-                    <span className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                      {cat.icon || style.emoji}
-                    </span>
-                    <h3 className="font-semibold text-center text-sm md:text-base">
-                      {cat.name}
-                    </h3>
-                    {cat.dealCount > 0 && (
-                      <span className="text-xs mt-1 opacity-80">
-                        {cat.dealCount} deals
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-              );
-            })
+          {/* Error State */}
+          {isError && (
+            <div className="text-red-500 mb-4">
+              Error loading categories: {(error as Error)?.message}
+            </div>
           )}
-        </div>
-      </main>
+
+          {/* Category Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {isLoading ? (
+              // Skeletons
+              Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square rounded-2xl" />
+              ))
+            ) : categories.length === 0 ? (
+              <p className="col-span-full text-center text-muted-foreground">
+                No categories found
+              </p>
+            ) : (
+              categories.map((cat) => {
+                const style =
+                  CATEGORY_STYLES[cat.slug] || CATEGORY_STYLES.other;
+                return (
+                  <Link
+                    key={cat.id}
+                    to={`/?category=${cat.slug}`}
+                    className="group relative aspect-square rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                  >
+                    {/* Gradient Background */}
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${style.gradient} opacity-90`}
+                    />
+
+                    {/* Content */}
+                    <div className="relative h-full flex flex-col items-center justify-center text-white p-4">
+                      <span className="text-5xl mb-3 group-hover:scale-110 transition-transform">
+                        {cat.icon || style.emoji}
+                      </span>
+                      <h3 className="font-semibold text-center text-sm md:text-base">
+                        {cat.name}
+                      </h3>
+                      {cat.dealCount > 0 && (
+                        <span className="text-xs mt-1 opacity-80">
+                          {cat.dealCount} deals
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                );
+              })
+            )}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <BottomNav />
     </div>
   );
 }

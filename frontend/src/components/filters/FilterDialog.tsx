@@ -3,8 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useCategories } from "@/hooks/useDeals";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useFilterStore } from "@/store/filterStore";
 
 const SORT_OPTIONS = [
@@ -13,7 +17,15 @@ const SORT_OPTIONS = [
   { value: "discount", label: "Best Discount" },
 ] as const;
 
-const STORES = ["Amazon", "Flipkart", "Myntra", "Ajio", "Nykaa", "Croma", "Tata"];
+const STORES = [
+  "Amazon",
+  "Flipkart",
+  "Myntra",
+  "Ajio",
+  "Nykaa",
+  "Croma",
+  "Tata",
+];
 const DISCOUNTS = [30, 50, 70];
 
 interface FilterDialogProps {
@@ -22,20 +34,21 @@ interface FilterDialogProps {
 }
 
 export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
-  const { data: categories, isLoading } = useCategories();
   const {
-    category,
     store,
     sortBy,
     minDiscount,
-    setCategory,
     setStore,
     setSortBy,
     setMinDiscount,
     resetFilters,
   } = useFilterStore();
 
-  const activeFiltersCount = [category, store, minDiscount, sortBy !== "newest" ? sortBy : null].filter(Boolean).length;
+  const activeFiltersCount = [
+    store,
+    minDiscount,
+    sortBy !== "newest" ? sortBy : null,
+  ].filter(Boolean).length;
 
   const handleApply = () => {
     onOpenChange(false);
@@ -54,12 +67,14 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
             )}
           </div>
         </DialogHeader>
-        
+
         <ScrollArea className="max-h-[60vh] p-4">
           <div className="space-y-6">
             {/* Sort By */}
             <div>
-              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">Sort By</h4>
+              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                Sort By
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {SORT_OPTIONS.map((option) => (
                   <Badge
@@ -68,7 +83,9 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
                     className="cursor-pointer py-2 px-4 text-sm rounded-full"
                     onClick={() => setSortBy(option.value)}
                   >
-                    {sortBy === option.value && <Check className="h-3 w-3 mr-1.5" />}
+                    {sortBy === option.value && (
+                      <Check className="h-3 w-3 mr-1.5" />
+                    )}
                     {option.label}
                   </Badge>
                 ))}
@@ -77,38 +94,11 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
 
             <Separator />
 
-            {/* Categories */}
-            <div>
-              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">Category</h4>
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={category === null ? "default" : "outline"}
-                  className="cursor-pointer py-2 px-4 text-sm rounded-full"
-                  onClick={() => setCategory(null)}
-                >
-                  {category === null && <Check className="h-3 w-3 mr-1.5" />}
-                  All
-                </Badge>
-                {!isLoading &&
-                  categories?.map((cat) => (
-                    <Badge
-                      key={cat.id}
-                      variant={category === cat.slug ? "default" : "outline"}
-                      className="cursor-pointer py-2 px-4 text-sm rounded-full"
-                      onClick={() => setCategory(cat.slug)}
-                    >
-                      {category === cat.slug && <Check className="h-3 w-3 mr-1.5" />}
-                      {cat.icon} {cat.name}
-                    </Badge>
-                  ))}
-              </div>
-            </div>
-
-            <Separator />
-
             {/* Stores */}
             <div>
-              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">Store</h4>
+              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                Store
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {STORES.map((s) => (
                   <Badge
@@ -128,7 +118,9 @@ export function FilterDialog({ open, onOpenChange }: FilterDialogProps) {
 
             {/* Min Discount */}
             <div>
-              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">Minimum Discount</h4>
+              <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                Minimum Discount
+              </h4>
               <div className="flex flex-wrap gap-2">
                 {DISCOUNTS.map((d) => (
                   <Badge

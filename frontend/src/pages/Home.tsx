@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useInView } from "react-intersection-observer";
 import { useSearchParams, Link } from "react-router-dom";
-import { Search, User, LogIn, X } from "lucide-react";
+import { Search, User, LogIn, X, SlidersHorizontal } from "lucide-react";
 import { IconRail } from "@/components/layout/IconRail";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { FilterDialog } from "@/components/filters/FilterDialog";
@@ -112,7 +112,7 @@ export function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop Icon Rail */}
-      <IconRail onFilterClick={() => setFilterOpen(true)} />
+      <IconRail />
 
       {/* Filter Dialog */}
       <FilterDialog open={filterOpen} onOpenChange={setFilterOpen} />
@@ -149,6 +149,17 @@ export function Home() {
 
             {/* User Actions */}
             <div className="flex items-center gap-2">
+              {/* Filter Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setFilterOpen(true)}
+                title="Filters"
+                className="text-lg"
+              >
+                <SlidersHorizontal className="h-5 w-5" />
+              </Button>
+
               {/* Region Toggle */}
               <Button
                 variant="ghost"
