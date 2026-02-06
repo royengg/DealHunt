@@ -16,7 +16,7 @@ const breakpointColumns = {
   1280: 4,
   1024: 3,
   768: 2,
-  480: 2,
+  640: 1,
 };
 
 export function DealGrid({ deals, isLoading, isFetchingNextPage }: DealGridProps) {

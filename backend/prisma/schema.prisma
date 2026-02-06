@@ -42,6 +42,9 @@ model User {
 model Deal {
   id              String     @id @default(cuid())
   title           String
+  cleanTitle      String?    // AI-cleaned concise title
+  brand           String?    // Extracted brand name
+  titleProcessedAt DateTime? // When AI processing occurred
   description     String?
   originalPrice   Decimal?   @db.Decimal(10, 2)
   dealPrice       Decimal?   @db.Decimal(10, 2)
@@ -84,6 +87,7 @@ model Deal {
   @@index([store])
   @@index([region])
   @@index([isActive, createdAt])
+  @@index([titleProcessedAt]) // For querying unprocessed deals
 }
 
 enum DealSource {

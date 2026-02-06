@@ -151,7 +151,7 @@ export function AdminDashboard() {
                       onChange={(e) => setChallengeDesc(e.target.value)}
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Start Date</Label>
                       <Input
@@ -227,7 +227,7 @@ export function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleCreateBadge} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Name</Label>
                       <Input
@@ -245,7 +245,7 @@ export function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Icon (Emoji)</Label>
                       <Input
@@ -291,7 +291,7 @@ export function AdminDashboard() {
               {badges.map((badge) => (
                 <div
                   key={badge.id}
-                  className="flex items-center gap-4 p-4 border rounded-lg"
+                  className="flex items-start gap-3 p-4 border rounded-lg"
                 >
                   <div className="text-3xl">{badge.icon}</div>
                   <div>

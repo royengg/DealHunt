@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ExternalLink,
   Bookmark,
@@ -42,6 +42,7 @@ const getCurrencySymbol = (currency: string = "INR"): string => {
 
 export function DealCard({ deal }: DealCardProps) {
   const { isAuthenticated } = useAuthStore();
+  const navigate = useNavigate();
   const voteMutation = useVoteDeal();
   const saveMutation = useSaveDeal();
   const trackClick = useTrackClick();
@@ -84,8 +85,13 @@ export function DealCard({ deal }: DealCardProps) {
     toast.success(isSaved ? "Removed from saved" : "Deal saved!");
   };
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     trackClick.mutate(deal.id);
+  };
+
+  const handleCardClick = () => {
+    navigate(`/deal/${deal.id}`);
   };
 
   const dealPrice = deal.dealPrice ? parseFloat(deal.dealPrice) : null;
@@ -96,7 +102,7 @@ export function DealCard({ deal }: DealCardProps) {
   return (
     <div className="group relative cursor-pointer">
       {/* Image Container - Pinterest style rounded corners, no border */}
-      <Link to={`/deal/${deal.id}`} className="block">
+      <div onClick={handleCardClick} className="block">
         <div className="relative overflow-hidden rounded-2xl bg-secondary">
           {deal.imageUrl ? (
             <img
@@ -193,14 +199,21 @@ export function DealCard({ deal }: DealCardProps) {
             </div>
           </div>
         </div>
-      </Link>
+      </div>
 
       {/* Content - Super minimal */}
       <div className="pt-2 px-1">
-        {/* Title */}
+        {/* Brand Badge */}
+        {deal.brand && (
+          <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+            {deal.brand}
+          </span>
+        )}
+        
+        {/* Title - use cleanTitle if available */}
         <Link to={`/deal/${deal.id}`}>
           <h3 className="font-medium text-sm line-clamp-2 hover:text-primary transition-colors leading-snug">
-            {deal.title}
+            {deal.cleanTitle || deal.title}
           </h3>
         </Link>
 

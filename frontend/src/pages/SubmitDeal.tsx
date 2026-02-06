@@ -211,7 +211,7 @@ export default function SubmitDeal() {
             </div>
 
             {/* Prices */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label
                   htmlFor="originalPrice"
@@ -297,7 +297,7 @@ export default function SubmitDeal() {
             </div>
 
             {/* Category & Store */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Tag className="h-4 w-4" />

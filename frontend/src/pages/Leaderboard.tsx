@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Medal, Award, TrendingUp, User } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, User, ArrowLeft } from "lucide-react";
 import api from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
 
@@ -71,9 +71,17 @@ export function Leaderboard() {
   };
 
   return (
-    <div className="container py-8 max-w-4xl">
+    <div className="container mx-auto py-8 max-w-4xl">
+      <div className="mb-6">
+        <Link to="/">
+          <Button variant="ghost" className="gap-2 pl-0 hover:bg-transparent hover:text-primary">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-500 to-amber-600 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-bold mb-2">
           DealHunt Leaderboards
         </h1>
         <p className="text-muted-foreground">
@@ -100,26 +108,26 @@ export function Leaderboard() {
                 {topHunters.map((entry, index) => (
                   <div
                     key={entry.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg border ${
+                    className={`flex items-center gap-3 p-3 md:p-4 rounded-lg border ${
                       index < 3 ? "bg-secondary/50" : "bg-card"
                     }`}
                   >
-                    <div className="flex-shrink-0 w-8 flex justify-center">
+                    <div className="flex-shrink-0 w-6 md:w-8 flex justify-center">
                       {getRankIcon(index)}
                     </div>
 
-                    <Avatar className="h-10 w-10">
+                    <Avatar className="h-8 w-8 md:h-10 md:w-10">
                       <AvatarImage src={entry.user.avatarUrl || ""} />
                       <AvatarFallback>
                         <User className="h-4 w-4" />
                       </AvatarFallback>
                     </Avatar>
 
-                    <div className="flex-grow">
-                      <h3 className="font-semibold">
+                    <div className="flex-grow min-w-0 px-1">
+                      <h3 className="font-semibold truncate text-sm md:text-base">
                         {entry.user.name || "Anonymous User"}
                       </h3>
-                      <div className="flex gap-4 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <TrendingUp className="h-3 w-3" />
                           {entry.weeklyUpvotes} upvotes

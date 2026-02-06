@@ -49,6 +49,8 @@ export function Explore() {
   );
   const [touchDelta, setTouchDelta] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const isScrolling = useRef(false);
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data, fetchNextPage, hasNextPage, isLoading } = useDeals({
     sortBy: "popular",
@@ -104,6 +106,36 @@ export function Explore() {
     }
   }, [currentIndex]);
 
+  // Wheel scroll handler with debouncing for smooth one-at-a-time navigation
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      
+      // Prevent rapid-fire scrolling
+      if (isScrolling.current) return;
+      
+      // Only trigger on significant scroll
+      const threshold = 50;
+      if (Math.abs(e.deltaY) < threshold) return;
+      
+      isScrolling.current = true;
+      
+      if (e.deltaY > 0) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
+      
+      // Reset scroll lock after animation completes
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
+      scrollTimeout.current = setTimeout(() => {
+        isScrolling.current = false;
+      }, 400);
+    },
+    [goToNext, goToPrevious]
+  );
   const handleSave = useCallback(() => {
     if (!currentDeal) return;
     if (!isAuthenticated) {
@@ -250,10 +282,11 @@ export function Explore() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 bg-black overflow-hidden select-none"
+      className="fixed top-0 left-0 w-full h-[100dvh] bg-black overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onWheel={handleWheel}
     >
       {/* Close Button */}
       <Button
@@ -265,10 +298,7 @@ export function Explore() {
         <X className="h-6 w-6" />
       </Button>
 
-      {/* Progress indicator */}
-      <div className="absolute top-4 right-4 z-50 text-white/70 text-sm font-medium">
-        {currentIndex + 1} / {allDeals.length}
-      </div>
+
 
       {/* Deal Card */}
       <div

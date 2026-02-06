@@ -9,6 +9,7 @@ import { parseRedditPosts, ParsedDeal } from "./reddit/parser";
 export const QUEUE_NAMES = {
   SCRAPE: "reddit-scrape",
   EMAIL: "email-notifications",
+  TITLE_CLASSIFIER: "title-classifier",
 } as const;
 
 // Job types
@@ -23,6 +24,11 @@ export interface EmailJobData {
   subject: string;
   html: string;
   text?: string;
+}
+
+export interface TitleClassifierJobData {
+  batchSize?: number;
+  processAll?: boolean;
 }
 
 // Create queues
@@ -61,6 +67,27 @@ export const emailQueue = new Queue<EmailJobData>(QUEUE_NAMES.EMAIL, {
     },
   },
 });
+
+export const titleClassifierQueue = new Queue<TitleClassifierJobData>(
+  QUEUE_NAMES.TITLE_CLASSIFIER,
+  {
+    connection: redisConnection,
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: {
+        type: "exponential",
+        delay: 60000, // 1 minute
+      },
+      removeOnComplete: {
+        age: 24 * 3600,
+        count: 50,
+      },
+      removeOnFail: {
+        age: 7 * 24 * 3600,
+      },
+    },
+  }
+);
 
 // Helper to save deals to database
 async function saveDeals(deals: ParsedDeal[]): Promise<number> {
@@ -294,12 +321,94 @@ export async function queueScrape(data: ScrapeJobData) {
   return scrapeQueue.add("manual-scrape", data);
 }
 
+// Create title classifier worker
+export function createTitleClassifierWorker() {
+  const worker = new Worker<TitleClassifierJobData>(
+    QUEUE_NAMES.TITLE_CLASSIFIER,
+    async (job: Job<TitleClassifierJobData>) => {
+      const { batchSize = 20, processAll = true } = job.data;
+
+      logger.info(
+        { batchSize, processAll, jobId: job.id },
+        "Processing title classifier job"
+      );
+
+      try {
+        const { processUnclassifiedDeals, processAllUnclassifiedDeals } =
+          await import("./titleClassifier");
+
+        const result = processAll
+          ? await processAllUnclassifiedDeals()
+          : await processUnclassifiedDeals(batchSize);
+
+        logger.info(
+          { result, jobId: job.id },
+          "Title classifier job completed"
+        );
+
+        return result;
+      } catch (error) {
+        logger.error(
+          { error, jobId: job.id },
+          "Title classifier job failed"
+        );
+        throw error;
+      }
+    },
+    {
+      connection: redisConnection,
+      concurrency: 1, // Only one classifier job at a time
+    }
+  );
+
+  worker.on("completed", (job) => {
+    logger.info(
+      { jobId: job.id, result: job.returnvalue },
+      "Title classifier job completed"
+    );
+  });
+
+  worker.on("failed", (job, err) => {
+    logger.error(
+      { jobId: job?.id, error: err.message },
+      "Title classifier job failed"
+    );
+  });
+
+  return worker;
+}
+
+// Schedule nightly title classifier job
+export async function scheduleTitleClassifierJob() {
+  await titleClassifierQueue.add(
+    "nightly-title-classifier",
+    { processAll: true },
+    {
+      repeat: {
+        pattern: "0 20 * * *", // 2:00 AM IST (20:30 UTC previous day)
+      },
+      jobId: "nightly-title-classifier-repeat",
+    }
+  );
+
+  logger.info("Scheduled nightly title classifier job at 2:00 AM IST");
+}
+
+// Helper to manually trigger title classification
+export async function queueTitleClassifier(data: TitleClassifierJobData = {}) {
+  return titleClassifierQueue.add("manual-title-classifier", data);
+}
+
 export default {
   scrapeQueue,
   emailQueue,
+  titleClassifierQueue,
   createScrapeWorker,
   createEmailWorker,
+  createTitleClassifierWorker,
   scheduleScrapeJobs,
+  scheduleTitleClassifierJob,
   queueEmail,
   queueScrape,
+  queueTitleClassifier,
 };

@@ -15,6 +15,8 @@ export interface Category {
 export interface Deal {
   id: string;
   title: string;
+  cleanTitle?: string | null;
+  brand?: string | null;
   description: string | null;
   originalPrice: string | null;
   dealPrice: string | null;

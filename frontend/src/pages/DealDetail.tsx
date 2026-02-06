@@ -214,14 +214,13 @@ export default function DealDetail() {
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Left - Image */}
             <div className="relative">
-              <div className="sticky top-24">
+              <div className="lg:sticky lg:top-24">
                 <div className="relative overflow-hidden rounded-2xl bg-secondary">
                   {deal.imageUrl ? (
                     <img
                       src={deal.imageUrl}
                       alt={deal.title}
-                      className="w-full h-auto object-cover"
-                      style={{ maxHeight: "600px" }}
+                      className="w-full h-auto object-cover max-h-[50vh] lg:max-h-[600px]"
                     />
                   ) : (
                     <div

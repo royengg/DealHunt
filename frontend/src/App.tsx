@@ -46,6 +46,8 @@ function App() {
             <Route path="/submit" element={<SubmitDeal />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/saved" element={<SavedDeals />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/error" element={<AuthError />} />
           </Routes>

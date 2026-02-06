@@ -102,6 +102,21 @@ export function Header() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
+          {/* Submit Deal Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" title="Submit a deal">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link to="/submit" className="cursor-pointer w-full">
+                  Submit a deal
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {/* Region Toggle */}
           <Button
             variant="ghost"
@@ -112,9 +127,12 @@ export function Header() {
                 ? "Showing India deals. Click for World"
                 : "Showing World deals. Click for India"
             }
-            className="text-lg"
           >
-            {region === "INDIA" ? "🇮🇳" : "🌍"}
+            {region === "INDIA" ? (
+              <span className="font-bold text-sm tracking-wide">IN</span>
+            ) : (
+              <span className="font-bold text-sm tracking-wide">ALL</span>
+            )}
           </Button>
 
           {/* Mobile Search */}

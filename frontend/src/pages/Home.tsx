@@ -237,6 +237,20 @@ export function Home() {
             </div>
           </div>
 
+          {/* Mobile Search Bar */}
+          <div className="md:hidden px-4 pb-3">
+            <form onSubmit={handleSearch} className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search deals..."
+                className="pl-9 w-full h-10 rounded-full bg-secondary border-0"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+            </form>
+          </div>
+
           {/* Category Navigation Bar */}
           <div className="border-b px-4 md:px-8 py-3">
             <div className="flex items-center gap-2">
